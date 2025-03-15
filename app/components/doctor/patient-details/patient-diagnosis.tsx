@@ -238,8 +238,9 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
   const [editedCondition, setEditedCondition] = useState<any | null>(null)
   const [newNote, setNewNote] = useState("")
   const [newReading, setNewReading] = useState({ date: "", value: "", notes: "" })
-  const [newMedication, setNewMedication] = useState({ name: "", dosage: "", frequency: "", startDate: "" })
-  
+  const [newMedication, setNewMedication] = useState({ name: "", dosage: "", frequency: "", startDate: "", endDate: "" })
+  const [newLabResult, setNewLabResult] = useState({ date: "", name: "", result: "", notes: "" });
+
   // New state for adding a new diagnosis
   const [isNewDiagnosisModalOpen, setIsNewDiagnosisModalOpen] = useState(false)
   const [newDiagnosis, setNewDiagnosis] = useState({
@@ -258,15 +259,12 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
     notes: [] as any[]
   })
   const [newSymptom, setNewSymptom] = useState("")
-
+  console.log("@@@@@@", newDiagnosis)
   const filteredConditions = conditions.filter((condition) => {
     if (activeTab === "all") return true
     return condition.status === activeTab
   })
 
-  const toggleExpand = (id: number) => {
-    setExpandedCondition(expandedCondition === id ? null : id)
-  }
 
   const openConditionModal = (condition: any) => {
     setSelectedCondition(condition)
@@ -322,7 +320,7 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
 
     const updatedMedications = [...editedCondition.medications, newMedicationObj]
     setEditedCondition({ ...editedCondition, medications: updatedMedications })
-    setNewMedication({ name: "", dosage: "", frequency: "", startDate: "" })
+    setNewMedication({ name: "", dosage: "", frequency: "", startDate: "", endDate: "" })
   }
 
   // Function to add a new symptom to the new diagnosis
@@ -365,7 +363,7 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
 
     // Add the new diagnosis to the conditions array
     setConditions([...conditions, diagnosisToAdd])
-    
+
     // Reset the form and close the modal
     setNewDiagnosis({
       name: "",
@@ -464,10 +462,10 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
             </TabsTrigger>
           </TabsList>
         </Tabs>
-        
+
         {/* Add New Diagnosis Button */}
-        <Button 
-          className="ml-4 whitespace-nowrap" 
+        <Button
+          className="ml-4 whitespace-nowrap"
           onClick={() => setIsNewDiagnosisModalOpen(true)}
         >
           <Plus className="h-4 w-4 mr-1" /> Add Diagnosis
@@ -712,7 +710,7 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
                               ...editedCondition,
                               symptoms: [...editedCondition.symptoms, newSymptom],
                             })
-                            ;(document.getElementById("new-symptom") as HTMLInputElement).value = ""
+                              ; (document.getElementById("new-symptom") as HTMLInputElement).value = ""
                           }
                         }}
                       >
@@ -1318,59 +1316,45 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
         </DialogContent>
       </Dialog>
 
-      {/* New Diagnosis Modal */}
+      {/* Add New Medical Record Modal */}
       <Dialog open={isNewDiagnosisModalOpen} onOpenChange={setIsNewDiagnosisModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Add New Diagnosis</DialogTitle>
+            <div className="flex justify-between items-center">
+              <DialogTitle className="text-2xl">
+                Add New Medical Condition
+              </DialogTitle>
+            </div>
             <DialogDescription>
-              Enter the details of the new medical condition or diagnosis
+              Enter details for the new medical condition
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
-            {/* Basic Information */}
+            {/* Overview Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center">
-                <FileText className="h-5 w-5 mr-2 text-primary" /> Basic Information
+                <FileText className="h-5 w-5 mr-2 text-primary" /> Overview
               </h3>
 
+              <div>
+                <Label>Condition Name</Label>
+                <Input
+                  value={newDiagnosis.name}
+                  onChange={(e) => setNewDiagnosis({ ...newDiagnosis, name: e.target.value })}
+                  className="mt-1"
+                  placeholder="e.g., Hypertension, Type 2 Diabetes"
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label htmlFor="diagnosis-name">Diagnosis Name</Label>
-                  <Input 
-                    id="diagnosis-name" 
-                    value={newDiagnosis.name}
-                    onChange={(e) => setNewDiagnosis({...newDiagnosis, name: e.target.value})}
-                    placeholder="e.g., Hypertension, Type 2 Diabetes, etc."
-                    className="mt-1"
-                  />
-                </div>
-
                 <div>
-                  <Label htmlFor="diagnosis-status">Status</Label>
-                  <Select 
-                    value={newDiagnosis.status}
-                    onValueChange={(value) => setNewDiagnosis({...newDiagnosis, status: value})}
-                  >
-                    <SelectTrigger id="diagnosis-status">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="recurring">Recurring</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="diagnosis-severity">Severity</Label>
-                  <Select 
+                  <Label>Severity</Label>
+                  <Select
                     value={newDiagnosis.severity}
-                    onValueChange={(value) => setNewDiagnosis({...newDiagnosis, severity: value})}
+                    onValueChange={(value) => setNewDiagnosis({ ...newDiagnosis, severity: value })}
                   >
-                    <SelectTrigger id="diagnosis-severity">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select severity" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1382,57 +1366,69 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
                 </div>
 
                 <div>
-                  <Label htmlFor="diagnosis-date">Diagnosis Date</Label>
-                  <Input 
-                    id="diagnosis-date" 
-                    type="date" 
+                  <Label>Status</Label>
+                  <Select
+                    value={newDiagnosis.status}
+                    onValueChange={(value) => setNewDiagnosis({ ...newDiagnosis, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="recurring">Recurring</SelectItem>
+                      <SelectItem value="resolved">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  value={newDiagnosis.description}
+                  onChange={(e) => setNewDiagnosis({ ...newDiagnosis, description: e.target.value })}
+                  className="mt-1"
+                  placeholder="Detailed description of the condition"
+                />
+              </div>
+
+              <div>
+                <Label>Treatment Plan</Label>
+                <Textarea
+                  value={newDiagnosis.treatment}
+                  onChange={(e) => setNewDiagnosis({ ...newDiagnosis, treatment: e.target.value })}
+                  className="mt-1"
+                  placeholder="Outline the treatment approach"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Diagnosed Date</Label>
+                  <Input
+                    type="date"
                     value={newDiagnosis.diagnosedDate}
-                    onChange={(e) => setNewDiagnosis({...newDiagnosis, diagnosedDate: e.target.value})}
+                    onChange={(e) => setNewDiagnosis({ ...newDiagnosis, diagnosedDate: e.target.value })}
                     className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="diagnosed-by">Diagnosed By</Label>
-                  <Input 
-                    id="diagnosed-by" 
-                    value={newDiagnosis.diagnosedBy}
-                    onChange={(e) => setNewDiagnosis({...newDiagnosis, diagnosedBy: e.target.value})}
-                    className="mt-1"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label htmlFor="diagnosis-description">Description</Label>
-                  <Textarea 
-                    id="diagnosis-description" 
-                    value={newDiagnosis.description}
-                    onChange={(e) => setNewDiagnosis({...newDiagnosis, description: e.target.value})}
-                    placeholder="Detailed description of the condition..."
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label htmlFor="treatment-plan">Treatment Plan</Label>
-                  <Textarea 
-                    id="treatment-plan" 
-                    value={newDiagnosis.treatment}
-                    onChange={(e) => setNewDiagnosis({...newDiagnosis, treatment: e.target.value})}
-                    placeholder="Describe the treatment plan..."
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <Label htmlFor="next-checkup">Next Checkup</Label>
-                  <Input 
-                    id="next-checkup" 
+                  <Label>Next Checkup</Label>
+                  <Input
                     value={newDiagnosis.nextCheckup}
-                    onChange={(e) => setNewDiagnosis({...newDiagnosis, nextCheckup: e.target.value})}
-                    placeholder="e.g., In 3 months, As needed, etc."
+                    onChange={(e) => setNewDiagnosis({ ...newDiagnosis, nextCheckup: e.target.value })}
+                    className="mt-1"
+                    placeholder="e.g., In 3 months, As needed"
+                  />
+                </div>
+
+                <div>
+                  <Label>Diagnosed By</Label>
+                  <Input
+                    value={newDiagnosis.diagnosedBy}
+                    onChange={(e) => setNewDiagnosis({ ...newDiagnosis, diagnosedBy: e.target.value })}
                     className="mt-1"
                   />
                 </div>
@@ -1447,10 +1443,17 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
                 <Activity className="h-5 w-5 mr-2 text-primary" /> Symptoms
               </h3>
 
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {newDiagnosis.symptoms.map((symptom, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <Input value={symptom} readOnly />
+                    <Input
+                      value={symptom}
+                      onChange={(e) => {
+                        const updatedSymptoms = [...newDiagnosis.symptoms];
+                        updatedSymptoms[index] = e.target.value;
+                        setNewDiagnosis({ ...newDiagnosis, symptoms: updatedSymptoms });
+                      }}
+                    />
                     <Button
                       variant="ghost"
                       size="icon"
@@ -1460,10 +1463,9 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
                     </Button>
                   </div>
                 ))}
-
                 <div className="flex items-center gap-2">
-                  <Input 
-                    placeholder="Add symptom" 
+                  <Input
+                    placeholder="Add new symptom"
                     value={newSymptom}
                     onChange={(e) => setNewSymptom(e.target.value)}
                     onKeyDown={(e) => {
@@ -1483,21 +1485,469 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
                 </div>
               </div>
             </div>
+
+            <Separator />
+
+            {/* Medications Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Pill className="h-5 w-5 mr-2 text-primary" /> Medications
+              </h3>
+
+              <div className="space-y-4">
+                {newDiagnosis.medications.map((medication, index) => (
+                  <div key={index} className="p-3 bg-gray-50 rounded-md">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <Label>Medication Name</Label>
+                        <Input
+                          value={medication.name}
+                          onChange={(e) => {
+                            const updatedMedications = [...newDiagnosis.medications];
+                            updatedMedications[index] = { ...medication, name: e.target.value };
+                            setNewDiagnosis({ ...newDiagnosis, medications: updatedMedications });
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Dosage</Label>
+                        <Input
+                          value={medication.dosage}
+                          onChange={(e) => {
+                            const updatedMedications = [...newDiagnosis.medications];
+                            updatedMedications[index] = { ...medication, dosage: e.target.value };
+                            setNewDiagnosis({ ...newDiagnosis, medications: updatedMedications });
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Frequency</Label>
+                        <Input
+                          value={medication.frequency}
+                          onChange={(e) => {
+                            const updatedMedications = [...newDiagnosis.medications];
+                            updatedMedications[index] = { ...medication, frequency: e.target.value };
+                            setNewDiagnosis({ ...newDiagnosis, medications: updatedMedications });
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Start Date</Label>
+                        <Input
+                          type="date"
+                          value={medication.startDate}
+                          onChange={(e) => {
+                            const updatedMedications = [...newDiagnosis.medications];
+                            updatedMedications[index] = { ...medication, startDate: e.target.value };
+                            setNewDiagnosis({ ...newDiagnosis, medications: updatedMedications });
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>End Date (if applicable)</Label>
+                        <Input
+                          type="date"
+                          value={medication.endDate || ""}
+                          onChange={(e) => {
+                            const updatedMedications = [...newDiagnosis.medications];
+                            updatedMedications[index] = { ...medication, endDate: e.target.value || null };
+                            setNewDiagnosis({ ...newDiagnosis, medications: updatedMedications });
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className="md:col-span-2 flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            const updatedMedications = newDiagnosis.medications.filter((_, i) => i !== index);
+                            setNewDiagnosis({ ...newDiagnosis, medications: updatedMedications });
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-1" /> Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="p-4 border border-dashed rounded-md">
+                  <h4 className="text-sm font-medium mb-3">Add New Medication</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Medication Name</Label>
+                      <Input
+                        value={newMedication.name}
+                        onChange={(e) => setNewMedication({ ...newMedication, name: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Dosage</Label>
+                      <Input
+                        value={newMedication.dosage}
+                        onChange={(e) => setNewMedication({ ...newMedication, dosage: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Frequency</Label>
+                      <Input
+                        value={newMedication.frequency}
+                        onChange={(e) => setNewMedication({ ...newMedication, frequency: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Start Date</Label>
+                      <Input
+                        type="date"
+                        value={newMedication.startDate}
+                        onChange={(e) => setNewMedication({ ...newMedication, startDate: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div className="md:col-span-2 flex justify-end mt-2">
+                      <Button
+                        onClick={() => {
+                          if (newMedication.name && newMedication.dosage && newMedication.frequency && newMedication.startDate) {
+                            setNewDiagnosis({
+                              ...newDiagnosis,
+                              medications: [...newDiagnosis.medications, newMedication]
+                            });
+                            setNewMedication({ name: "", dosage: "", frequency: "", startDate: "", endDate: "" });
+                          }
+                        }}
+                        disabled={
+                          !newMedication.name ||
+                          !newMedication.dosage ||
+                          !newMedication.frequency ||
+                          !newMedication.startDate
+                        }
+                      >
+                        <Plus className="h-4 w-4 mr-1" /> Add Medication
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Readings/Measurements Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Activity className="h-5 w-5 mr-2 text-primary" /> Readings & Measurements
+              </h3>
+
+              <div className="space-y-3">
+                {newDiagnosis.readings.map((reading, index) => (
+                  <div key={index} className="p-3 bg-gray-50 rounded-md">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <Label>Date</Label>
+                        <Input
+                          type="date"
+                          value={reading.date}
+                          onChange={(e) => {
+                            const updatedReadings = [...newDiagnosis.readings];
+                            updatedReadings[index] = { ...reading, date: e.target.value };
+                            setNewDiagnosis({ ...newDiagnosis, readings: updatedReadings });
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Value</Label>
+                        <Input
+                          value={reading.value}
+                          onChange={(e) => {
+                            const updatedReadings = [...newDiagnosis.readings];
+                            updatedReadings[index] = { ...reading, value: e.target.value };
+                            setNewDiagnosis({ ...newDiagnosis, readings: updatedReadings });
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Notes</Label>
+                        <Input
+                          value={reading.notes}
+                          onChange={(e) => {
+                            const updatedReadings = [...newDiagnosis.readings];
+                            updatedReadings[index] = { ...reading, notes: e.target.value };
+                            setNewDiagnosis({ ...newDiagnosis, readings: updatedReadings });
+                          }}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className="md:col-span-3 flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            const updatedReadings = newDiagnosis.readings.filter((_, i) => i !== index);
+                            setNewDiagnosis({ ...newDiagnosis, readings: updatedReadings });
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-1" /> Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="p-4 border border-dashed rounded-md">
+                  <h4 className="text-sm font-medium mb-3">Add New Reading</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                      <Label>Date</Label>
+                      <Input
+                        type="date"
+                        value={newReading.date}
+                        onChange={(e) => setNewReading({ ...newReading, date: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label>Value</Label>
+                      <Input
+                        value={newReading.value}
+                        onChange={(e) => setNewReading({ ...newReading, value: e.target.value })}
+                        className="mt-1"
+                        placeholder="e.g., 140/90, HbA1c: 7.2%"
+                      />
+                    </div>
+                    <div>
+                      <Label>Notes</Label>
+                      <Input
+                        value={newReading.notes}
+                        onChange={(e) => setNewReading({ ...newReading, notes: e.target.value })}
+                        className="mt-1"
+                        placeholder="Optional notes"
+                      />
+                    </div>
+                    <div className="md:col-span-3 flex justify-end mt-2">
+                      <Button
+                        onClick={() => {
+                          if (newReading.date && newReading.value) {
+                            setNewDiagnosis({
+                              ...newDiagnosis,
+                              readings: [...newDiagnosis.readings, newReading]
+                            });
+                            setNewReading({ date: "", value: "", notes: "" });
+                          }
+                        }}
+                        disabled={!newReading.date || !newReading.value}
+                      >
+                        <Plus className="h-4 w-4 mr-1" /> Add Reading
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Lab Results Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <FileText className="h-5 w-5 mr-2 text-primary" /> Lab Results
+              </h3>
+
+              <div className="space-y-3">
+                {newDiagnosis.labResults.map((result, index) => (
+                  <div key={index} className="p-3 bg-gray-50 rounded-md">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <Label>Date</Label>
+                        <Input
+                          type="date"
+                          value={result.date}
+                          onChange={(e) => setNewLabResult({ ...newLabResult, notes: e.target.value })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Test Name</Label>
+                        <Input
+                          value={result.name}
+                          onChange={(e) => setNewLabResult({ ...newLabResult, notes: e.target.value })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label>Result</Label>
+                        <Select
+                          value={result.result}
+                          onValueChange={(value) => setNewLabResult({ ...newLabResult, result: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select result" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Normal">Normal</SelectItem>
+                            <SelectItem value="Abnormal">Abnormal</SelectItem>
+                            <SelectItem value="Positive">Positive</SelectItem>
+                            <SelectItem value="Negative">Negative</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Notes</Label>
+                        <Input
+                          value={result.notes}
+                          onChange={(e) => setNewLabResult({ ...newLabResult, notes: e.target.value })}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className="md:col-span-2 flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            console.log(newLabResult)
+                            if (newLabResult.date && newLabResult.name && newLabResult.result) {
+                              setNewDiagnosis({
+                                ...newDiagnosis,
+                                readings: [...newDiagnosis.readings, newLabResult]
+                              });
+                              setNewLabResult({ date: "", name:"" , result:"" ,notes:"" });
+                            }
+                          }}  
+                        >
+                          <X className="h-4 w-4 mr-1" /> Remove
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <div className="p-4 border border-dashed rounded-md">
+                  <h4 className="text-sm font-medium mb-3">Add New Lab Result</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Date</Label>
+                      <Input
+                        type="date"
+                        className="mt-1"
+                        id="new-lab-date"
+                        onChange={(e) => setNewLabResult({ ...newLabResult, date: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label>Test Name</Label>
+                      <Input
+                        placeholder="e.g., Blood Glucose, Lipid Panel"
+                        className="mt-1"
+                        onChange={(e) => setNewLabResult({ ...newLabResult, name: e.target.value })}
+                        id="new-lab-name"
+                      />
+                    </div>
+                    <div>
+                      <Label>Result</Label>
+                      <Select
+                        value={newLabResult.result || ""}
+                        onValueChange={(value) => setNewLabResult({ ...newLabResult, result: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select result" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Normal">Normal</SelectItem>
+                          <SelectItem value="Abnormal">Abnormal</SelectItem>
+                          <SelectItem value="Positive">Positive</SelectItem>
+                          <SelectItem value="Negative">Negative</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Notes</Label>
+                      <Input
+                        placeholder="Additional details about the result"
+                        className="mt-1"
+                        onChange={(e) => setNewLabResult({ ...newLabResult, notes: e.target.value })}
+                        id="new-lab-notes"
+                      />
+                    </div>
+                    <div className="md:col-span-2 flex justify-end mt-2">
+                      <Button
+                        onClick={() => {
+                          console.log(newLabResult)
+                          if (newLabResult.date && newLabResult.name && newLabResult.result) {
+                            setNewDiagnosis({
+                              ...newDiagnosis,
+                              labResults: [...newDiagnosis.labResults, newLabResult]
+                            });
+                            console.log(newDiagnosis)
+                            setNewLabResult({ date: "", name:"" , result:"" ,notes:"" });
+                          }
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-1" /> Add Lab Result
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Initial Note Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <History className="h-5 w-5 mr-2 text-primary" /> Initial Note
+              </h3>
+
+              <div className="p-4 border border-dashed rounded-md">
+                <h4 className="text-sm font-medium mb-3">Add Initial Diagnostic Note</h4>
+                <Textarea
+                  placeholder="Enter initial diagnostic note..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  This note will be added to the medical record with today's date.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="mt-6">
             <Button variant="outline" onClick={() => setIsNewDiagnosisModalOpen(false)}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSaveNewDiagnosis}
+            <Button
+              onClick={() => {
+
+                setNewDiagnosis({
+                  ...newDiagnosis,
+                  notes: [...newDiagnosis.notes, newNote]
+                });
+                setNewNote("")
+                handleSaveNewDiagnosis()
+              }}
               disabled={!newDiagnosis.name || !newDiagnosis.description}
             >
-              <Plus className="h-4 w-4 mr-1" /> Add Diagnosis
+              <Plus className="h-4 w-4 mr-1" /> Add Medical Record
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   )
 }
