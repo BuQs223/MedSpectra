@@ -33,7 +33,7 @@ export function PatientDetails({ patient }: PatientDetailsProps) {
             <div>
               <h1 className="text-xl font-bold">{patient.name}</h1>
               <p className="text-sm text-muted-foreground">
-                {patient.age} years • {patient.gender} • {patient.medicalConditions.join(", ")}
+                {patient.age} years • {patient.gender}
               </p>
             </div>
           </div>

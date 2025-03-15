@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -35,6 +35,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { supabase } from "@/utils/supabase"
 interface PatientDiagnosisProps {
   patient: any
 }
@@ -228,6 +229,22 @@ const conditionsData = [
     ],
   },
 ]
+interface Diagnosis {
+  id: string; // or string, depending on your database
+  name: string;
+  status: string;
+  severity: string;
+  description: string;
+  treatment: string;
+  nextCheckup: string | null;
+  diagnosedBy: string;
+  symptoms: string[] | null;
+  medications: any[] | null; // Adjust type as necessary
+  readings: any[] | null; // Adjust type as necessary
+  labResults: any[] | null; // Adjust type as necessary
+  notes: any[] | null; // Adjust type as necessary
+}
+
 export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
   const [conditions, setConditions] = useState(conditionsData)
   const [activeTab, setActiveTab] = useState("all")
@@ -240,8 +257,6 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
   const [newReading, setNewReading] = useState({ date: "", value: "", notes: "" })
   const [newMedication, setNewMedication] = useState({ name: "", dosage: "", frequency: "", startDate: "", endDate: "" })
   const [newLabResult, setNewLabResult] = useState({ date: "", name: "", result: "", notes: "" });
-
-  // New state for adding a new diagnosis
   const [isNewDiagnosisModalOpen, setIsNewDiagnosisModalOpen] = useState(false)
   const [newDiagnosis, setNewDiagnosis] = useState({
     name: "",
@@ -258,14 +273,226 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
     labResults: [] as any[],
     notes: [] as any[]
   })
+  const handleSaveNewDiagnosis = async () => {
+    if (!newDiagnosis.name || !newDiagnosis.description) {
+      // Show some validation error to the user
+      return;
+    }
+
+    try {
+      // Format the data to match your SQL schema
+      const { data, error } = await supabase
+        .from('pacient_diagnosis')
+        .insert([
+          {
+            name: newDiagnosis.name,
+            status: newDiagnosis.status,
+            severity: newDiagnosis.severity,
+            description: newDiagnosis.description,
+            treatment: newDiagnosis.treatment,
+            next_check_up: newDiagnosis.nextCheckup || null,
+            diagnosed_by: newDiagnosis.diagnosedBy,
+            symptoms: newDiagnosis.symptoms.length > 0 ? JSON.stringify(newDiagnosis.symptoms) : null,
+            medications: newDiagnosis.medications.length > 0 ? JSON.stringify(newDiagnosis.medications) : null,
+            readings: newDiagnosis.readings.length > 0 ? JSON.stringify(newDiagnosis.readings) : null,
+            lab_results: newDiagnosis.labResults.length > 0 ? JSON.stringify(newDiagnosis.labResults) : null,
+            notes: newDiagnosis.notes.length > 0 ?
+              `Initial diagnosis of ${newDiagnosis.name}.` : null,
+            user_id: patient.id
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+
+      // If successful, add the new diagnosis to the local state
+      if (data && data.length > 0) {
+        // Format the returned data to match your frontend structure
+        const formattedDiagnosis = {
+          id: data[0].id,
+          name: data[0].name,
+          status: data[0].status,
+          severity: data[0].severity,
+          diagnosedDate: new Date(data[0].created_at).toISOString().split("T")[0],
+          description: data[0].description,
+          treatment: data[0].treatment,
+          nextCheckup: data[0].next_check_up,
+          diagnosedBy: data[0].diagnosed_by,
+          symptoms: data[0].symptoms ? JSON.parse(data[0].symptoms) : [],
+          medications: data[0].medications ? JSON.parse(data[0].medications) : [],
+          readings: data[0].readings ? JSON.parse(data[0].readings) : [],
+          labResults: data[0].lab_results ? JSON.parse(data[0].lab_results) : [],
+          notes: data[0].notes ?
+            [{
+              date: new Date(data[0].created_at).toISOString().split("T")[0],
+              author: data[0].diagnosed_by,
+              content: data[0].notes
+            }] : []
+        };
+
+        setConditions([...conditions, formattedDiagnosis]);
+      }
+
+      // Reset the form and close the modal
+      setNewDiagnosis({
+        name: "",
+        status: "active",
+        severity: "moderate",
+        diagnosedDate: new Date().toISOString().split("T")[0],
+        description: "",
+        treatment: "",
+        nextCheckup: "",
+        diagnosedBy: "Dr. Sarah Johnson",
+        symptoms: [],
+        medications: [],
+        readings: [],
+        labResults: [],
+        notes: []
+      });
+      setIsNewDiagnosisModalOpen(false);
+
+    } catch (error) {
+      console.error("Error saving diagnosis:", error);
+      // Show error message to user
+    }
+  };
   const [newSymptom, setNewSymptom] = useState("")
   console.log("@@@@@@", newDiagnosis)
   const filteredConditions = conditions.filter((condition) => {
     if (activeTab === "all") return true
     return condition.status === activeTab
   })
+  const handleUpdateDiagnosis = async (diagnosisId:number) => {
+    if (!editedCondition) return;
+    
+    try {
+      // Format the data to match your SQL schema
+      const updateData = {
+        name: editedCondition.name,
+        status: editedCondition.status,
+        severity: editedCondition.severity,
+        description: editedCondition.description,
+        treatment: editedCondition.treatment,
+        next_check_up: editedCondition.nextCheckup || null,
+        diagnosed_by: editedCondition.diagnosedBy,
+        symptoms: editedCondition.symptoms?.length > 0 
+          ? JSON.stringify(editedCondition.symptoms) 
+          : null,
+        medications: editedCondition.medications?.length > 0 
+          ? JSON.stringify(editedCondition.medications) 
+          : null,
+        readings: editedCondition.readings?.length > 0 
+          ? JSON.stringify(editedCondition.readings) 
+          : null,
+        lab_results: editedCondition.labResults?.length > 0 
+          ? JSON.stringify(editedCondition.labResults) 
+          : null,
+        notes: editedCondition.notes?.length > 0 
+          ? JSON.stringify(editedCondition.notes) 
+          : null
+      };
+      
+      // Remove any undefined fields to avoid overwriting with null
+     
+      
+      // Update the record in Supabase
+      const { data, error } = await supabase
+        .from('pacient_diagnosis')
+        .update(updateData)
+        .eq('id', diagnosisId)
+        .select();
+      
+      if (error) throw error;
+      
+      // If successful, update the local state
+      if (data && data.length > 0) {
+        // Format the returned data to match your frontend structure
+        const updatedDiagnosis = {
+          id: data[0].id,
+          name: data[0].name,
+          status: data[0].status,
+          severity: data[0].severity,
+          diagnosedDate: new Date(data[0].created_at).toISOString().split("T")[0],
+          description: data[0].description,
+          treatment: data[0].treatment,
+          nextCheckup: data[0].next_check_up,
+          diagnosedBy: data[0].diagnosed_by,
+          symptoms: data[0].symptoms ? JSON.parse(data[0].symptoms) : [],
+          medications: data[0].medications ? JSON.parse(data[0].medications) : [],
+          readings: data[0].readings ? JSON.parse(data[0].readings) : [],
+          labResults: data[0].lab_results ? JSON.parse(data[0].lab_results) : [],
+          notes: data[0].notes ? JSON.parse(data[0].notes) : []
+        };
+        
+        // Update the conditions array with the updated diagnosis
+        const updatedConditions = conditions.map(condition => 
+          condition.id === diagnosisId ? updatedDiagnosis : condition
+        );
+        
+        setConditions(updatedConditions);
+        
+        // If this was the selected condition, update that too
+        if (selectedCondition && selectedCondition.id === diagnosisId) {
+          setSelectedCondition(updatedDiagnosis);
+        }
+      }
+      
+      // Exit editing mode
+      setIsEditing(false);
+      setEditedCondition(null);
+      
+    } catch (error) {
+      console.error("Error updating diagnosis:", error);
+      // Show error message to user
+    }
+  };
+  
+  // Add this function to your component
+  const fetchDiagnoses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pacient_diagnosis')
+        .select('*')
+        .eq('user_id', patient.id);
 
+      if (error) throw error;
 
+      if (data) {
+        // Transform the data to match your frontend structure
+        const formattedDiagnoses = data.map(diagnosis => ({
+          id: diagnosis.id,
+          name: diagnosis.name,
+          status: diagnosis.status,
+          severity: diagnosis.severity,
+          diagnosedDate: new Date(diagnosis.created_at).toISOString().split("T")[0],
+          description: diagnosis.description,
+          treatment: diagnosis.treatment,
+          nextCheckup: diagnosis.next_check_up,
+          diagnosedBy: diagnosis.diagnosed_by,
+          symptoms: diagnosis.symptoms ? JSON.parse(diagnosis.symptoms) : [],
+          medications: diagnosis.medications ? JSON.parse(diagnosis.medications) : [],
+          readings: diagnosis.readings ? JSON.parse(diagnosis.readings) : [],
+          labResults: diagnosis.lab_results ? JSON.parse(diagnosis.lab_results) : [],
+          notes: diagnosis.notes ?
+            [{
+              date: new Date(diagnosis.created_at).toISOString().split("T")[0],
+              author: diagnosis.diagnosed_by,
+              content: diagnosis.notes
+            }] : []
+        }));
+        console.log(formattedDiagnoses)
+        setConditions(formattedDiagnoses);
+      }
+    } catch (error) {
+      console.error("Error fetching diagnoses:", error);
+      // Show error message to user
+    }
+  };
+
+  // Use useEffect to fetch diagnoses when the component mounts
+  useEffect(() => {
+    fetchDiagnoses();
+  }, [patient.id]); // Re-fetch when patient ID changes
   const openConditionModal = (condition: any) => {
     setSelectedCondition(condition)
     setEditedCondition(JSON.parse(JSON.stringify(condition))) // Deep copy for editing
@@ -344,44 +571,7 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
   }
 
   // Function to save the new diagnosis
-  const handleSaveNewDiagnosis = () => {
-    if (!newDiagnosis.name || !newDiagnosis.description) return
 
-    // Create a new diagnosis with a unique ID
-    const newId = Math.max(...conditions.map(c => c.id)) + 1
-    const diagnosisToAdd = {
-      ...newDiagnosis,
-      id: newId,
-      notes: [
-        {
-          date: new Date().toISOString().split("T")[0],
-          author: newDiagnosis.diagnosedBy,
-          content: `Initial diagnosis of ${newDiagnosis.name}.`
-        }
-      ]
-    }
-
-    // Add the new diagnosis to the conditions array
-    setConditions([...conditions, diagnosisToAdd])
-
-    // Reset the form and close the modal
-    setNewDiagnosis({
-      name: "",
-      status: "active",
-      severity: "moderate",
-      diagnosedDate: new Date().toISOString().split("T")[0],
-      description: "",
-      treatment: "",
-      nextCheckup: "",
-      diagnosedBy: "Dr. Sarah Johnson",
-      symptoms: [],
-      medications: [],
-      readings: [],
-      labResults: [],
-      notes: []
-    })
-    setIsNewDiagnosisModalOpen(false)
-  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -552,7 +742,7 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
                   <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
                     <X className="h-4 w-4 mr-1" /> Cancel
                   </Button>
-                  <Button size="sm" onClick={handleSaveChanges}>
+                  <Button size="sm" onClick={() => handleUpdateDiagnosis(selectedCondition.id)}>
                     <Save className="h-4 w-4 mr-1" /> Save Changes
                   </Button>
                 </div>
@@ -1822,9 +2012,9 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
                                 ...newDiagnosis,
                                 readings: [...newDiagnosis.readings, newLabResult]
                               });
-                              setNewLabResult({ date: "", name:"" , result:"" ,notes:"" });
+                              setNewLabResult({ date: "", name: "", result: "", notes: "" });
                             }
-                          }}  
+                          }}
                         >
                           <X className="h-4 w-4 mr-1" /> Remove
                         </Button>
@@ -1891,7 +2081,7 @@ export function PatientDiagnosis({ patient }: PatientDiagnosisProps) {
                               labResults: [...newDiagnosis.labResults, newLabResult]
                             });
                             console.log(newDiagnosis)
-                            setNewLabResult({ date: "", name:"" , result:"" ,notes:"" });
+                            setNewLabResult({ date: "", name: "", result: "", notes: "" });
                           }
                         }}
                       >

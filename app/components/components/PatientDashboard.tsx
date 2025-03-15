@@ -64,7 +64,7 @@ export default function PatientDashboard() {
   // Get tab from URL or default to "doctors"
   useEffect(() => {
     setMounted(true)
-    const tab = searchParams.get("tab") || "doctors"
+    const tab = searchParams.get("tab") || "connect"
     setActiveTab(tab)
   }, [searchParams])
 

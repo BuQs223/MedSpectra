@@ -43,13 +43,7 @@ export function DashboardSidebar({ className, collapsed = false, onToggle, ...pr
       active: pathname === "/dashboard" && !currentTab,
       notification: 0,
     },
-    {
-      label: "Doctors",
-      icon: Users,
-      href: "/dashboard?tab=doctors",
-      active: pathname === "/dashboard" && currentTab === "doctors",
-      notification: 3,
-    },
+
     {
       label: "Connect with Doctor",
       icon: UserPlus,
@@ -58,7 +52,7 @@ export function DashboardSidebar({ className, collapsed = false, onToggle, ...pr
       notification: 0,
     },
     {
-      label: "Connection Status",
+      label: "doctor",
       icon: CheckCircle2,
       href: "/dashboard?tab=status",
       active: pathname === "/dashboard" && currentTab === "status",
@@ -92,13 +86,7 @@ export function DashboardSidebar({ className, collapsed = false, onToggle, ...pr
       active: pathname === "/dashboard/messages",
       notification: 5,
     },
-    {
-      label: "Notifications",
-      icon: Bell,
-      href: "/dashboard/notifications",
-      active: pathname === "/dashboard/notifications",
-      notification: 8,
-    },
+   
     {
       label: "Settings",
       icon: Settings,

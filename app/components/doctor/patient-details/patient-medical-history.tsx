@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CalendarIcon, ActivityIcon, HeartPulseIcon, CigaretteIcon as LungsIcon, ThermometerIcon } from "lucide-react"
+import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal } from "react"
 
 interface PatientMedicalHistoryProps {
   patient: any
@@ -102,23 +103,24 @@ export function PatientMedicalHistory({ patient }: PatientMedicalHistoryProps) {
             <CardDescription>Chronic and ongoing health issues</CardDescription>
           </CardHeader>
           <CardContent>
-            {patient.medicalConditions.length > 0 ? (
-              <div className="space-y-3">
-                {patient.medicalConditions.map((condition: string, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                    <div className="flex items-center">
-                      <div className="h-2 w-2 rounded-full bg-blue-500 mr-3" />
-                      <span>{condition}</span>
-                    </div>
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                      Ongoing
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No medical conditions recorded</p>
-            )}
+          {patient.medicalConditions.length > 0 ? (
+  <div className="space-y-3">
+    {patient.medicalConditions.map((condition: any, index: number) => (
+      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+        <div className="flex items-center">
+          <div className="h-2 w-2 rounded-full bg-blue-500 mr-3" />
+          <span>{condition.name}</span>
+        </div>
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          {condition.status || "Ongoing"}
+        </Badge>
+      </div>
+    ))}
+  </div>
+) : (
+  <p className="text-muted-foreground">No medical conditions recorded</p>
+)}
+
           </CardContent>
         </Card>
 
@@ -128,41 +130,30 @@ export function PatientMedicalHistory({ patient }: PatientMedicalHistoryProps) {
             <CardDescription>Current and past medications</CardDescription>
           </CardHeader>
           <CardContent>
-            {patient.medications.length > 0 ? (
-              <div className="space-y-4">
-                {patient.medications.map((medication: any, index: number) => (
-                  <div key={index} className="p-3 bg-gray-50 rounded-md">
-                    <div className="flex justify-between items-start">
-                      <p className="font-medium">{medication.name}</p>
-                      {medication.status && (
-                        <Badge
-                          variant="outline"
-                          className={medication.status.toLowerCase() === "active"
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : medication.status.toLowerCase() === "stopped"
-                              ? "bg-red-50 text-red-700 border-red-200"
-                              : "bg-gray-50 text-gray-700 border-gray-200"
-                          }
-                        >
-                          {medication.status.charAt(0).toUpperCase() + medication.status.slice(1).toLowerCase()}
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm">
-                      {medication.dosage} • {medication.frequency}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Started on {medication.startDate && medication.startDate !== "Not specified"
-                        ? new Date(medication.startDate).toLocaleDateString()
-                        : "unknown date"}
-                    </p>
+          {patient.medicalConditions.length > 0 ? (
+                  <div className="space-y-3">
+                    {patient.medicalConditions.flatMap((condition: { medications: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; dosage: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; frequency: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; startDate: string | number | Date }[]; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }, conditionIndex: number) =>
+                      condition.medications.map((medication: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; dosage: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; frequency: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; startDate: string | number | Date }, medicationIndex: number) => (
+                        <div key={`${conditionIndex}-${medicationIndex}`} className="p-3 bg-gray-50 rounded-md">
+                          <div className="flex justify-between">
+                            <p className="font-medium">{medication.name}</p>
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                              {condition.name}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {medication.dosage} • {medication.frequency}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Started: {new Date(medication.startDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))
+                    )}
                   </div>
-                ))}
-
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No medications recorded</p>
-            )}
+                ) : (
+                  <p className="text-sm text-muted-foreground">No current medications</p>
+                )}
           </CardContent>
         </Card>
       </div>

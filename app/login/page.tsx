@@ -83,12 +83,11 @@ export default function LoginPage() {
 
   return (
     <div>
-                  <Header />
-
+      <Header/>
     <div className="bg-background flex flex-col items-center justify-center p-4 ">
       
       <div className="w-full max-w-md">
-        <Link href="/" className="inline-flex items-center text-primary mb-6 hover:underline">
+        <Link href="/" prefetch={true} className="inline-flex items-center text-primary mb-6 hover:underline" >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to home
         </Link>
@@ -149,13 +148,13 @@ export default function LoginPage() {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <div className="text-sm text-center text-muted-foreground">
-                <Link href="/reset-password" className="text-primary hover:underline">
+                <Link href="/reset-password" prefetch={true} className="text-primary hover:underline">
                   Forgot your password?
                 </Link>
               </div>
               <div className="text-sm text-center">
                 Don&apos;t have an account?{" "}
-                <Link href="/register" className="text-primary hover:underline">
+                <Link href="/register" prefetch={true} className="text-primary hover:underline">
                   Sign up
                 </Link>
               </div>

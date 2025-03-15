@@ -16,9 +16,21 @@ import {
   HeartPulse,
   TreesIcon as Lungs,
 } from "lucide-react"
+import { ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react"
 
 interface PatientOverviewProps {
   patient: any
+}
+interface MedicalCondition {
+  name: string;
+  status: string;
+  medications: Array<{
+    name: string;
+    dosage: string;
+    frequency: string;
+    startDate: string;
+    endDate: string | null;
+  }>;
 }
 
 export function PatientOverview({ patient }: PatientOverviewProps) {
@@ -46,7 +58,7 @@ export function PatientOverview({ patient }: PatientOverviewProps) {
               <p className="text-sm text-muted-foreground">
                 {patient.age} years • {patient.gender} • {patient.bloodType}
               </p>
-             
+
             </div>
 
             <div className="space-y-4">
@@ -183,9 +195,13 @@ export function PatientOverview({ patient }: PatientOverviewProps) {
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Medical Conditions</h3>
                 {patient.medicalConditions.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {patient.medicalConditions.map((condition: string) => (
-                      <Badge key={condition} variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                        {condition}
+                    {patient.medicalConditions.map((condition: MedicalCondition) => (
+                      <Badge
+                        key={condition.name}
+                        variant="outline"
+                        className="bg-blue-50 text-blue-700 border-blue-200"
+                      >
+                        {condition.name}
                       </Badge>
                     ))}
                   </div>
@@ -196,23 +212,32 @@ export function PatientOverview({ patient }: PatientOverviewProps) {
 
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Current Medications</h3>
-                {patient.medications.length > 0 ? (
+                {patient.medicalConditions.length > 0 ? (
                   <div className="space-y-3">
-                    {patient.medications.map((medication: any, index: number) => (
-                      <div key={index} className="p-3 bg-gray-50 rounded-md">
-                        <p className="font-medium">{medication.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {medication.dosage} • {medication.frequency}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Started: {new Date(medication.startDate).toLocaleDateString()}
-                        </p>
-                      </div>
-                    ))}
+                    {patient.medicalConditions.flatMap((condition: { medications: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; dosage: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; frequency: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; startDate: string | number | Date }[]; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined }, conditionIndex: number) =>
+                      condition.medications.map((medication: { name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; dosage: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; frequency: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; startDate: string | number | Date }, medicationIndex: number) => (
+                        <div key={`${conditionIndex}-${medicationIndex}`} className="p-3 bg-gray-50 rounded-md">
+                          <div className="flex justify-between">
+                            <p className="font-medium">{medication.name}</p>
+                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                              {condition.name}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {medication.dosage} • {medication.frequency}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Started: {new Date(medication.startDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))
+                    )}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">No current medications</p>
                 )}
+
+
               </div>
             </div>
           </CardContent>

@@ -56,13 +56,7 @@ export function DoctorSidebar({ className, collapsed = false, onToggle, ...props
       active: pathname === "/doctor" && currentTab === "requests",
       notification: 5,
     },
-    {
-      label: "Medical Records",
-      icon: FileText,
-      href: "/doctor?tab=records",
-      active: pathname === "/doctor" && currentTab === "records",
-      notification: 0,
-    },
+   
     {
       label: "Appointments",
       icon: Calendar,
@@ -77,13 +71,7 @@ export function DoctorSidebar({ className, collapsed = false, onToggle, ...props
       active: pathname === "/doctor/messages",
       notification: 7,
     },
-    {
-      label: "Prescriptions",
-      icon: ClipboardList,
-      href: "/doctor/prescriptions",
-      active: pathname === "/doctor/prescriptions",
-      notification: 0,
-    },
+   
     {
       label: "Settings",
       icon: Settings,
