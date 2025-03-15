@@ -13,15 +13,30 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
+  const [isScrolled, setIsScrolled] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10)
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 10)
     }
     window.addEventListener("scroll", handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
+  const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
+
+  const navItems = [
+    { href: "/", label: "Home" },
+    { href: "/about", label: "About" },
+    { href: "/services", label: "Services" },
+    { href: "/contact", label: "Contact" },
+  ]
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen)
 
   const navItems = [
@@ -36,8 +51,12 @@ export default function Header() {
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         isScrolled ? "bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm" : "bg-transparent"
       }`}
+      className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+        isScrolled ? "bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm" : "bg-transparent"
+      }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
+      transition={{ duration: 0.5 }}
       transition={{ duration: 0.5 }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -92,6 +111,14 @@ export default function Header() {
               <Link href="/login" passHref prefetch={true}>
                 <Button variant="outline" size="sm" className="group">
                   Log in
+                  <motion.span
+                    className="ml-1 opacity-0 group-hover:opacity-100"
+                    initial={{ x: -5 }}
+                    whileHover={{ x: 0 }}
+                  >
+                    →
+                  </motion.span>
+                </Button>
                   <motion.span
                     className="ml-1 opacity-0 group-hover:opacity-100"
                     initial={{ x: -5 }}
@@ -184,3 +211,4 @@ export default function Header() {
     </motion.header>
   )
 }
+
