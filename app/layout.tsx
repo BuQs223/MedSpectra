@@ -26,6 +26,7 @@ export default function RootLayout({
         <AuthProvider>
         <body className={`${inter.className} min-h-screen bg-background text-foreground`}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <Header />
             <main>{children}</main>
             <Footer />
             <Toaster />

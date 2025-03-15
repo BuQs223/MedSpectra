@@ -14,6 +14,8 @@ import Header from "../components/Header"
 
 // Reset scroll position when component mounts
 
+// Reset scroll position when component mounts
+
 export default function ContactPage() {
   useEffect(() => {
     window.scrollTo(0, 0)

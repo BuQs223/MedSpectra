@@ -1,5 +1,7 @@
 "use client"
 
+"use client"
+
 import Hero from "./components/Hero"
 import WearYourStory from "./components/WearYourStory"
 import FeatureCarousel from "./components/FeatureCarousel"
@@ -36,7 +38,53 @@ import { ArrowRight, CheckCircle, Shield, Users, FileText, Clock, Star } from "l
 import Image from "next/image"
 import { motion } from "framer-motion"
 
+// export default function Home() {
+//   return (
+//     <>
+//       <Header />
+
+//       <Hero />
+
+//       <WearYourStory />
+//       <FeatureCarousel />
+//       <Marquee />
+
+//       <Timeline />
+//       <ContactForm />
+//       <NewsletterSubscribe />
+//     </>
+//   )
+// }
+
+
+import { useEffect } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { ArrowRight, CheckCircle, Shield, Users, FileText, Clock, Star } from "lucide-react"
+import Image from "next/image"
+import { motion } from "framer-motion"
+
 export default function Home() {
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.3,
+      },
+    },
+  }
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  }
+
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [])

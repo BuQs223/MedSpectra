@@ -1,84 +1,45 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Loader2 } from 'lucide-react'
-import { supabase } from "@/utils/supabase" // Make sure this import points to your Supabase client
-import { toast } from "@/components/ui/use-toast" // Import toast for notifications
-import Header from "../components/Header"
+import type React from "react"
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
-})
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { EyeIcon, EyeOffIcon, LockIcon, MailIcon } from "lucide-react"
+import { motion } from "framer-motion"
+import { useToast } from "@/hooks/use-toast"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [rememberMe, setRememberMe] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const { toast } = useToast()
   const router = useRouter()
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  })
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      setIsSubmitting(true)
-      
-      // Sign in with Supabase Auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: values.email,
-        password: values.password,
-      })  
-      console.log(data)
-      console.log(values.email)
-      console.log(values.password)
-      if (error) {
-        throw error
-      }
-      
-      // If successful, show success notification
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false)
       toast({
         title: "Login successful",
-        description: "You have been signed in.",
+        description: "Welcome back to MedSpectra!",
       })
-      const { data: { user } } = await supabase.auth.getUser()
-      console.log(user)
-      // Redirect to dashboard or home page after successful login
-      router.push("/dashboard")
-      
-    } catch (error: any) {
-      console.error("Login error:", error)
-      
-      // Show different error messages based on the error
-      if (error.message.includes("Invalid login credentials")) {
-        toast({
-          title: "Login failed",
-          description: "Incorrect email or password. Please try again.",
-          variant: "destructive",
-        })
-      } else {
-        toast({
-          title: "Login failed",
-          description: error.message || "An error occurred while signing in.",
-          variant: "destructive",
-        })
-      }
-    } finally {
-      setIsSubmitting(false)
-    }
+      router.push("/")
+    }, 1500)
   }
 
   return (
@@ -95,56 +56,114 @@ export default function LoginPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
         >
-          <Card>
+          <Card className="border-blue-100 dark:border-slate-700">
             <CardHeader>
-              <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
-              <CardDescription className="text-center">
-                Sign in to your account to continue
-              </CardDescription>
+              <CardTitle>Sign In</CardTitle>
+              <CardDescription>Enter your credentials to access your account</CardDescription>
             </CardHeader>
             <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="john@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <MailIcon className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <LockIcon className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 flex items-center pr-3"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOffIcon className="h-5 w-5 text-slate-400" />
+                      ) : (
+                        <EyeIcon className="h-5 w-5 text-slate-400" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember-me"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                   />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      "Sign In"
-                    )}
-                  </Button>
-                </form>
-              </Form>
+                  <label
+                    htmlFor="remember-me"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700 dark:text-slate-300"
+                  >
+                    Remember me
+                  </label>
+                </div>
+
+                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Signing in...
+                    </div>
+                  ) : (
+                    "Sign in"
+                  )}
+                </Button>
+              </form>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <div className="text-sm text-center text-muted-foreground">
@@ -157,12 +176,12 @@ export default function LoginPage() {
                 <Link href="/register" prefetch={true} className="text-primary hover:underline">
                   Sign up
                 </Link>
-              </div>
+              </p>
             </CardFooter>
           </Card>
         </motion.div>
-      </div>
-    </div>
+      </motion.div>
     </div>
   )
 }
+
